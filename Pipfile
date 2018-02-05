@@ -10,6 +10,7 @@ name = "pypi"
 django = ">=1.11,<1.12"
 channels = "*"
 channels-redis = "*"
+selenium = "*"
 
 
 [dev-packages]
