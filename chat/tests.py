@@ -1,4 +1,5 @@
 from channels.testing import ChannelsLiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.wait import WebDriverWait
@@ -23,6 +24,9 @@ class ChatTests(ChannelsLiveServerTestCase):
     def test_when_chat_message_posted_then_seen_by_everyone_in_same_room(self):
         try:
             self._enter_chat_room('room 1')
+            
+            # NOTE: Background is NOT blue here, showing that static files are NOT being served.
+            import pdb; pdb.set_trace()
             
             self._open_new_window()
             self._enter_chat_room('room 1')
@@ -85,3 +89,34 @@ class ChatTests(ChannelsLiveServerTestCase):
     @property
     def _chat_log_value(self):
         return self.driver.find_element_by_css_selector('#chat-log').get_property('value')
+
+
+class NonChatTests(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        try:
+            # NOTE: Requires "chromedriver" binary to be installed in $PATH
+            cls.driver = webdriver.Chrome()
+        except:
+            super().tearDownClass()
+            raise
+    
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
+    
+    def test_when_chat_message_posted_then_seen_by_everyone_in_same_room(self):
+        self._enter_chat_room('room 1')
+        
+        # NOTE: Background is blue here, showing that static files are being served.
+        import pdb; pdb.set_trace()
+    
+    # === Utility ===
+    
+    def _enter_chat_room(self, room_name):
+        self.driver.get(self.live_server_url + '/chat/')
+        ActionChains(self.driver).send_keys(room_name + '\n').perform()
+        WebDriverWait(self.driver, 2).until(lambda _:
+            room_name.replace(' ', '%20') in self.driver.current_url)
