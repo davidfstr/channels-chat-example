@@ -6,6 +6,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 
 class ChatTests(ChannelsLiveServerTestCase):
+    serve_static = True
+    
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
